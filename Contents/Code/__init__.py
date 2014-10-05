@@ -10,7 +10,6 @@ BASE_URL = 'http://finkammat.se/'
 def Start():
 
     ObjectContainer.title1 = TITLE
-    
     DirectoryObject.thumb = R(ICON)
     
     HTTP.CacheTime = CACHE_1HOUR
@@ -129,13 +128,8 @@ def Articles(title, url, page = 0):
         
         if isVideo:
             oc.add(
-                DirectoryObject(
-                    key =
-                        Callback(
-                            Video,
-                            title = articleTitle,
-                            url = articleURL
-                        ),
+                VideoClipObject(
+                    url = articleURL,
                     title = articleTitle,
                     summary = articleSummary,
                     thumb = articleThumb
@@ -144,12 +138,7 @@ def Articles(title, url, page = 0):
         else:
             oc.add(
                 PhotoAlbumObject(
-                    key =
-                        Callback(
-                            Photo,
-                            title = articleTitle,
-                            url = articleURL
-                        ),
+                    url = articleURL,
                     rating_key = articleTitle,
                     title = articleTitle,
                     summary = articleSummary,
@@ -169,92 +158,3 @@ def Articles(title, url, page = 0):
         )
 
     return oc
-
-####################################################################################################
-@route(PREFIX + '/Video')
-def Video(title, url):
-
-    oc = ObjectContainer(title2 = unicode(title))
-    
-    pageElement = HTML.ElementFromURL(url)
-
-    for link in pageElement.xpath("//*[contains(@src, 'youtube.com/embed')]"):
-        url = 'http:' + link.xpath("./@src")[0]
-        
-        oc.add(
-            URLService.MetadataObjectForURL(url)
-        )
-        
-        break
-
-    return oc
-    
-####################################################################################################
-@route(PREFIX + '/Photo')
-def Photo(title, url):
-
-    oc = ObjectContainer(title2 = unicode(title))
-    
-    pageElement = HTML.ElementFromURL(url)
-    
-    photos = []
-    photo = {}
-    
-    for item in pageElement.xpath("//*[@class='mediaText']//*[@class='descriptionText']//following-sibling::*"):
-        if item.xpath("name()")[0] == 'h':
-            try:
-                text = item.xpath("./text()")[0]
-            except:
-                text = None
-            
-            if text:
-                # Start of a new image section
-                if photo:
-                    photos.append(photo)
-
-                photo = {}
-                photo['title'] = unicode(text)
-                photo['images'] = []
-                photo['summary'] = None
-        
-        if photo:
-            try:
-                photo['images'].append(item.xpath(".//img/@data-src")[0])
-            except:
-                pass
-            
-            if not photo['summary'] and item.xpath("name()")[0] == 'p':
-                try:
-                    photo['summary'] = item.xpath("./text()")[0]
-                except:
-                    pass
-                    
-    if not photos:
-        # Page with no text just images
-        images = pageElement.xpath("//*[@class='mediaText']//*[@class='descriptionText']//following-sibling::*//img/@data-src")
-        
-        for image in images:
-            oc.add(
-                PhotoObject(
-                    key = image,
-                    rating_key = image,
-                    title = title,
-                    thumb = image
-                )
-            )
-        
-    else:       
-        for photo in photos:
-            for image in photo['images']:
-                oc.add(
-                    PhotoObject(
-                        key = image,
-                        rating_key = image,
-                        title = photo['title'],
-                        summary = photo['summary'],
-                        thumb = image
-                    )
-                )
-        
-    return oc
-
