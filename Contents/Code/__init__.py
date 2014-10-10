@@ -1,7 +1,8 @@
-TITLE  = 'Finkammat'
+TITLE = 'Finkammat'
 PREFIX = '/video/finkammat'
 
-ICON  = 'icon-default.png'
+ICON = 'icon-default.png'
+ART = 'art-default.jpg'
 
 USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/600.1.17 (KHTML, like Gecko) Version/7.1 Safari/537.85.10'
 BASE_URL = 'http://finkammat.se/'
@@ -16,7 +17,7 @@ def Start():
     HTTP.Headers['User-agent'] = USER_AGENT
 
 ###################################################################################################
-@handler(PREFIX, TITLE, thumb = ICON)
+@handler(PREFIX, TITLE, thumb = ICON, art = ART)
 def MainMenu():
 
     oc = ObjectContainer()
